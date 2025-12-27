@@ -1,4 +1,4 @@
-name: CI - Train and Save the model
+name: CI - Train & Persist ML Model
 
 on:
   push:
@@ -7,36 +7,37 @@ on:
     branches: [ main ]
 
 jobs:
-  matrix-pip:
-    name: Train and Save the model
+  train-ml-model:
+    name: Train and Save ML Model
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
-        python: [3.11,3.12]
-    
-    steps: 
-     - name: Checkout 
-       uses: actions/checkout@v4
-       
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{matrix.python}}
-    
-    - name: Upgrade pip
-      run: python -m pip install --upgrade pip setuptools wheel
+        python-version: [3.11, 3.12]
 
-    - name: Install project Dependencies 
-      run:  python -m pip install -r requirements.txt 
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Train the model 
-      run: | 
-        python train.python
-        ls -la artifacts 
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Upload artifacts 
-      uses: actions/upload-artifact@v4
-      with: 
-        name: ml-artifacts-${{ matrix.python }}-${{ github.run_id }}
-        path: artifacts
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Train ML model
+        run: |
+          python train.py
+          ls -la artifacts
+
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ml-artifacts-py${{ matrix.python-version }}-${{ github.run_id }}
+          path: artifacts
 
